@@ -102,6 +102,16 @@ class SimController:
                 controls.delete_particle(self._cur_selected)
                 self._cur_selected = None
 
+        if self.mode == ModeEnum.CREATE:
+
+            # Cycling creatable types
+            if symbol == key.LEFT:
+                self.cur_creation_index = (self.cur_creation_index + 1) % len(self.creatable_types)
+                Logger.log_custom("control", "Changed creation type to {}.".format(self.creatable_types[self.cur_creation_index]))
+            if symbol == key.RIGHT:
+                self.cur_creation_index = ((self.cur_creation_index - 1) % len(self.creatable_types))
+                Logger.log_custom("control", "Changed creation type to {}.".format(self.creatable_types[self.cur_creation_index]))
+    
     # Simulation control
 
     def tick(self, dt=1):

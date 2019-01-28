@@ -214,7 +214,7 @@ class Particle(entity.Entity):
             if t_self in e.interacting_types:
                 F = e.interacting_types[t_self]
             self.interacting_types[t_e] = F
-            Logger.log_warning("Discovered unknown type {} -> {}".format(t_self, t_e))
+            Logger.log_info("Discovered unknown type {} -> {}".format(t_self, t_e))
             return F
 
 
