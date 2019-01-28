@@ -1,0 +1,4 @@
+collect.sh
+venv
+logs
+__pycache__
