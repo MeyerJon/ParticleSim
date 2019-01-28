@@ -23,16 +23,18 @@ class Simulation:
         self.lifetime += 1
 
         # Keep track of entities to delete
-        to_delete = list()
+        to_delete = set()
 
         for e_ix in range(len(self.entities)):
             self.entities[e_ix].tick(self.entities)
             if self.entities[e_ix].mfd:
-                to_delete.append(e_ix)
+                to_delete.add(e_ix)
         
         # Cleanup
+        deleted = 0 # Use this for adjusting indices
         for ix in to_delete:
-            self.entities.pop(ix)
+            self.entities.pop(ix - deleted)
+            deleted += 1
 
         for e in self.entities:
             if issubclass(type(e), particle.Particle):
