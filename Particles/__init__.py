@@ -39,7 +39,6 @@ def run_app():
     # Main app loop
     pyglet.app.run()
 
-
     # Collect & log some stats
     post_run_stats(controller, sim)
 

@@ -1,4 +1,5 @@
 from Particles.utils import Logger, Transform
+from Particles.models import particle_factory
 from pyglet.window import key, mouse
 import pyglet, math
 
@@ -64,6 +65,7 @@ def toggle_particle_movable(particle):
     except NameError:
         Logger.log_warning("Can't toggle movability of '{}.'".format(particle))
 
+
 # Simulation model methods
 def toggle_pause(target):
 
@@ -90,6 +92,9 @@ def set_tick_speed(controller, symbol):
     controller.ticks_per_secs = new_tps
     Logger.log_system("Set TPS to {}.".format(controller.ticks_per_secs))
 
+def spawn_particle(sim, data):
+    p = particle_factory.create_particle(data)
+    sim.add_entity(p)
 
 # Particle graphics methods
 def toggle_debug_view(particle):

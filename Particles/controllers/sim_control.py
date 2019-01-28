@@ -22,7 +22,8 @@ class SimController:
         # Controller parameters
         self.mode = ModeEnum.SELECT
         self.ticks_per_secs = 50.0
-        self.creatable_types = list()
+        self.creatable_types = get_creatable_types()
+        self.cur_creation_index = 0
 
         self._cur_selected = None
         self._ui = controller_ui.ControllerUI()
@@ -50,6 +51,16 @@ class SimController:
             elif btn == mouse.RIGHT:
                 # Deselect current entity
                 self._cur_selected = None
+
+        if self.mode == ModeEnum.CREATE:
+
+            if btn == mouse.LEFT:
+                # Create particle under mouse
+                pos = Transform.screen_to_world((x, y))
+                data = {"type": self.creatable_types[self.cur_creation_index],
+                        "pos": pos
+                       }
+                controls.spawn_particle(self.sim, data)
 
     
     def on_key_press(self, symbol, modifiers):
@@ -128,3 +139,13 @@ class SimController:
 
         # Draw UI
         self._ui.draw()
+
+
+# Helper methods
+def get_creatable_types():
+
+    from Particles.models import types
+
+    l = [types.PType1, types.PType2, types.PType3]
+
+    return l
