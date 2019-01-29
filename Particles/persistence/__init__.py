@@ -4,6 +4,7 @@
 """
 import json
 from Particles.models import particle, types
+from Particles.utils import Logger
 
 DATA_FOLDER = "./data"
 
@@ -15,6 +16,9 @@ def get_particle_type(name):
     """ Extracts particle type from saved name. Name looks like:
         <class 'Particles.models.types.PType1'>
     """
+
+    if name is None:
+        return None
 
     name = name[7:-2] #Strip all but actual class reference
     parts = name.split('.')
@@ -56,13 +60,20 @@ def save_to_json(sim, fname="sim"):
         for e in sim.entities:
 
             if issubclass(type(e), particle.Particle):
-                p_data = dict()
-                p_data["type"] = str(type(e))
-                p_data["pos"] = e.pos
-                p_data["velocity"] = e._velocity
-                p_data["mass"] = e.mass
-                p_data["size"] = e.size
-                data["particles"].append(p_data)
+                try:
+                    p_data = dict()
+                    p_data["type"] = str(type(e))
+                    p_data["pos"] = e.pos
+                    p_data["velocity"] = e._velocity
+                    p_data["mass"] = e.mass
+                    p_data["size"] = e.size
+                    p_data["can_move"] = e._can_move
+                    p_data["paused"] = e.paused
+                    data["particles"].append(p_data)
+                except AttributeError as e:
+                    Logger.log_warning("Corrupt particle. Can't save particle.")
+                    Logger.log_exception(e)
+                    continue
 
         # Dump data to json
         json.dump(data, savefile)
@@ -83,10 +94,40 @@ def load_from_json(sim, fname="sim"):
     # Construct sim state
     sim.lifetime = data["lifetime"]
     for e in data["particles"]:
-        t = get_particle_type(e["type"])
-        pos = e["pos"]
-        mass = e["mass"]
-        size = e["size"]
-        p = t(pos[0], pos[1], size=size, mass=mass)
-        p._velocity = e["velocity"]
+
+        # Get particle type
+        type_raw = None
+        try:
+            type_raw = e["type"]
+        except KeyError as ke:
+            Logger.log_warning("No particle type data. This save is corrupt or incompatible.")
+            Logger.log_exception(ke)
+            continue
+        
+        t = get_particle_type(type_raw)
+        if t is None:
+            Logger.log_warning("Unrecognized particle type. Can't load particle.")
+            continue
+
+        # Construct particle
+        p = None
+        try:
+            pos = e["pos"]
+            mass = e["mass"]
+            size = e["size"]
+            p = t(pos[0], pos[1], size=size, mass=mass)
+        except KeyError as ke:
+            Logger.log_warning("Incomplete particle data. Can't load particle.")
+            Logger.log_exception(ke)
+            continue
+        
+        # Set particle attributes
+        try:
+            p._velocity = e["velocity"]
+            p._can_move = e["can_move"]
+            p.paused = e["paused"]
+        except KeyError as ke:
+            Logger.log_info("Missing particle data. Perhaps this is an old save?")
+            Logger.log_exception(ke)
+
         sim.add_entity(p)

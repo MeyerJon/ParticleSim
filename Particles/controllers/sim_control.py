@@ -98,12 +98,14 @@ class SimController:
                     controls.toggle_particle_movable(self._cur_selected)
 
             if symbol == key.S and modifiers == 18: # CRTL+S
-                Logger.log_custom("control", "Saving current state.")
+                Logger.log_custom("control", "Saving current state...")
                 persistence.save_to_json(self.sim)
+                Logger.log_custom("control", "Finished saving.")
 
             if symbol == key.L and modifiers == 18: # CRTL+L
-                Logger.log_custom("control", "Loading state.")
+                Logger.log_custom("control", "Loading state...")
                 persistence.load_from_json(self.sim)
+                Logger.log_custom("control", "Finished loading.")
 
         if self.mode == ModeEnum.DESTROY:
 
