@@ -26,7 +26,9 @@ A complete list of controls follows: \
 * **ctrl+up**: Increase simulation speed (x2)
 * **ctrl+down**: Decrease simulation speed (x0.5)
 * **h** : Show/Hide the control panel
-* **m** : Cycle through modes (SELECT, CREATE, DESTROY) *(note: currently, CREATE isn't implemented)*
+* **m** : Cycle through modes (SELECT, CREATE, DESTROY)
+* **ctrl+s** : Saves the current state of the simulation to a file (JSON)
+* **ctrl+l** : Loads a saved state.
 
 **Selected particle**
 * **arrow keys** : Change the particle's velocity in the given direction
