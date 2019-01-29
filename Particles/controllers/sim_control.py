@@ -20,6 +20,9 @@ class SimController:
         self.sim = sim
         self.keyboard = keyboard
 
+        # Setup
+        persistence.create_data_folder()
+
         # Controller parameters
         self.mode = ModeEnum.SELECT
         self.ticks_per_secs = 50.0

@@ -2,7 +2,7 @@
     Module that handles data persistence.
     Provides functionality for saving and loading simulation states.
 """
-import json
+import os, json
 from Particles.models import particle, types
 from Particles.utils import Logger
 
@@ -11,6 +11,12 @@ DATA_FOLDER = "./data"
 # Utilities
 def get_file_path(fname, ext):
     return DATA_FOLDER + "/" + fname + "." + ext
+
+def create_data_folder():
+    """ Creates the data folder if it doesn't exist. """
+    if not os.path.exists(DATA_FOLDER):
+        os.mkdir(DATA_FOLDER)
+        Logger.log_system("Created data directory.")
 
 def get_particle_type(name):
     """ Extracts particle type from saved name. Name looks like:
@@ -83,6 +89,10 @@ def load_from_json(sim, fname="sim"):
     """ Loads a simulation state. """
 
     fname = get_file_path(fname, "json")
+
+    if not os.path.exists(fname):
+        Logger.log_error("File not found: '{}'. Can't load.".format(fname))
+        return
 
     data = dict()
     with open(fname, 'r') as savefile:
