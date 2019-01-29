@@ -5,7 +5,7 @@ from Particles.utils import Logger, Profiler
 import pyglet, time, cProfile
 
 
-def run_app():
+def run_app(config=None):
 
     # Setup model & controller
     sim = simulation.setup()
@@ -19,12 +19,26 @@ def run_app():
     # Profiling
     Profiler.make_profiler_category("draw_times")
     Profiler.make_profiler_category("tick_times")
-    fps_counter = pyglet.window.FPSDisplay(app.win)
+
+    # Logger verbose level
+    default_verbose = 3
+    if "verbose_level" in app.CONFIG:
+        default_verbose = app.CONFIG["verbose_level"]
+    Logger.set_verbose_level(default_verbose)
+
+    fps_counter = None
+    if "show_FPS" in app.CONFIG and app.CONFIG["show_FPS"]:
+        fps_counter = pyglet.window.FPSDisplay(app.win)
 
     # Schedule initial simulation speed
     ticks_per_sec = 25.0
     pyglet.clock.schedule_interval(controller.tick, 1 / ticks_per_sec)
-    pyglet.clock.set_fps_limit(60)
+
+    # Cap FPS
+    max_fps = 120
+    if "max_FPS" in app.CONFIG:
+        max_fps = app.CONFIG["max_FPS"]
+    pyglet.clock.set_fps_limit(max_fps)
 
     # Draw event
     @app.win.event
@@ -34,7 +48,7 @@ def run_app():
         sim.draw()
         controller.draw()
         Profiler.add_profiler_data("draw_times", time.time() - starttime)
-        fps_counter.draw()
+        if fps_counter: fps_counter.draw()
     
     # Main app loop
     pyglet.app.run()
@@ -60,3 +74,5 @@ def post_run_stats(controller, sim):
         Logger.log(">> Avg. tick time: {} ms".format(avg_tick * 1000))
 
     Logger.log("<----------------->")
+
+

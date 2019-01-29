@@ -1,5 +1,6 @@
 from Particles.utils import Logger, Transform
 from Particles.models import particle_factory
+from Particles.app import CONFIG
 from pyglet.window import key, mouse
 import pyglet, math
 
@@ -81,9 +82,14 @@ def toggle_pause(target):
 def set_tick_speed(controller, symbol):
 
     old_tps = controller.ticks_per_secs
+    max_tps = 400
+    try:
+        max_tps = CONFIG["max_TPS"]
+    except KeyError:
+        pass
 
     if symbol == key.UP:
-        new_tps = min(old_tps * 2.0, 400)
+        new_tps = min(old_tps * 2.0, max_tps)
     else:
         new_tps = max(1, old_tps / 2.0)
 

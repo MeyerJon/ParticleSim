@@ -11,7 +11,7 @@ Logger.clear_logfile()
 Logger.log("Started at " + str(start_time))
 
 # Start the simulation
-Particles.run_app()
+Particles.run_app("./config.json")
 #cProfile.run("Particles.run_app()")
 
 # Finish up logfile

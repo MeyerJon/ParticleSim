@@ -3,52 +3,36 @@
     Provides functionality for saving and loading simulation states.
 """
 import os, json
-from Particles.models import particle, types
+from Particles.app import CONFIG
+from Particles.models import particle, types, particle_factory
 from Particles.utils import Logger
-
-DATA_FOLDER = "./data"
 
 # Utilities
 def get_file_path(fname, ext):
-    return DATA_FOLDER + "/" + fname + "." + ext
+    dir = "./data" # default
+    try:
+        dir = CONFIG["data_folder"]
+    except KeyError:
+        pass
+    return dir + "/" + fname + "." + ext
 
 def create_data_folder():
     """ Creates the data folder if it doesn't exist. """
-    if not os.path.exists(DATA_FOLDER):
-        os.mkdir(DATA_FOLDER)
+    path = "./data" # default folder
+    try:
+        path = CONFIG["data_folder"]
+    except KeyError:
+        pass
+
+    if not os.path.exists(path):
+        os.mkdir(path)
         Logger.log_system("Created data directory.")
 
-def get_particle_type(name):
-    """ Extracts particle type from saved name. Name looks like:
-        <class 'Particles.models.types.PType1'>
-    """
-
-    if name is None:
-        return None
-
-    name = name[7:-2] #Strip all but actual class reference
-    parts = name.split('.')
-    result = None
-
-    # Here comes the *big if*
-    if parts[-2] == "types":
-        # It's one of the 'standard' types
-        t = parts[-1]
-        if t == "PType1":
-            result = types.PType1
-        elif t == "PType2":
-            result = types.PType2
-        elif t == "PType3":
-            result = types.PType3
-        elif t == "PType4":
-            result = types.PType4
-        elif t == "PType5":
-            result = types.PType5
-
-    return result
+def set_data_folder(path):
+    CONFIG["data_folder"] = path
 
 
-
+# Saving and loading
 def save_to_json(sim, fname="sim"):
     """ Saves a simulation's state as a .json file. """
 
@@ -103,41 +87,11 @@ def load_from_json(sim, fname="sim"):
     
     # Construct sim state
     sim.lifetime = data["lifetime"]
+
     for e in data["particles"]:
 
-        # Get particle type
-        type_raw = None
-        try:
-            type_raw = e["type"]
-        except KeyError as ke:
-            Logger.log_warning("No particle type data. This save is corrupt or incompatible.")
-            Logger.log_exception(ke)
-            continue
-        
-        t = get_particle_type(type_raw)
-        if t is None:
-            Logger.log_warning("Unrecognized particle type. Can't load particle.")
-            continue
-
-        # Construct particle
-        p = None
-        try:
-            pos = e["pos"]
-            mass = e["mass"]
-            size = e["size"]
-            p = t(pos[0], pos[1], size=size, mass=mass)
-        except KeyError as ke:
-            Logger.log_warning("Incomplete particle data. Can't load particle.")
-            Logger.log_exception(ke)
-            continue
-        
-        # Set particle attributes
-        try:
-            p._velocity = e["velocity"]
-            p._can_move = e["can_move"]
-            p.paused = e["paused"]
-        except KeyError as ke:
-            Logger.log_info("Missing particle data. Perhaps this is an old save?")
-            Logger.log_exception(ke)
-
-        sim.add_entity(p)
+        p = particle_factory.create_particle(e)
+        if p is not None:
+            sim.add_entity(p)
+        else:
+            Logger.log_warning("Loading particle failed.")

@@ -2,19 +2,25 @@
 
 V_SYS_LEVEL = 1
 V_WARNING_LEVEL = 2
-V_INFO_LEVEL = 2
+V_INFO_LEVEL = 3
 V_ERROR_LEVEL = 3
 V_EXCEPT_LEVEL = 4
 
 verbose_level = 3
 output_file = "./logs"
 
-
 def set_verbose_level(lvl):
+
+    if type(lvl) is not int:
+        print("[ERROR] Invalid verbose level '{}'".format(lvl))
+        return
+
     if (lvl > 0):
+        global verbose_level
         verbose_level = lvl
 
 def set_output_file(file):
+    global output_file
     output_file = file
 
 def clear_logfile():
