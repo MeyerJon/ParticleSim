@@ -1,4 +1,5 @@
 collect.sh
 venv
 logs
+data
 __pycache__

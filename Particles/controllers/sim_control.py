@@ -4,6 +4,7 @@ from enum import Enum
 from Particles.models import simulation
 from Particles.controllers import controller_ui, controls
 from Particles.utils import Transform, Shapes, Logger, Profiler
+from Particles import persistence
 
 
 class ModeEnum(Enum):
@@ -95,6 +96,14 @@ class SimController:
             if symbol == key.SPACE:
                 if self._cur_selected is not None:
                     controls.toggle_particle_movable(self._cur_selected)
+
+            if symbol == key.S and modifiers == 18: # CRTL+S
+                Logger.log_custom("control", "Saving current state.")
+                persistence.save_to_json(self.sim)
+
+            if symbol == key.L and modifiers == 18: # CRTL+L
+                Logger.log_custom("control", "Loading state.")
+                persistence.load_from_json(self.sim)
 
         if self.mode == ModeEnum.DESTROY:
 
