@@ -127,15 +127,30 @@ def setup():
     """
 
     # Primordial particles
-    for _ in range(80):
-        x = (random.randint(5, 195) - 100) / 100.0
-        y = (random.randint(5, 195) - 100) / 100.0
+    
+    for _ in range(200):
+        x = (random.randint(15, 185) - 100) / 100.0
+        y = (random.randint(15, 185) - 100) / 100.0
         p = particle.PrimordialParticle(x, y)
-        p.size = 0.008
-        p.radius = 0.24 #0.155
-        p.velocity = 0.003 #0.013
-        p.alpha = math.radians(5) #math.radians(180)
-        p.beta = math.radians(3) #math.radians(17)
+        p.size = 0.0065
+        p.radius = 0.18 #0.155
+        p.velocity = 0.0075 #0.013
+        p.alpha = math.radians(180) #math.radians(180)
+        p.beta = math.radians(17) #math.radians(17)
         sim.add_entity(p)
+    
+    """
+    p1 = particle.PrimordialParticle(0, 0)
+    p1.radius = 0.5
+    p1.alpha = math.radians(180)
+    p1.beta = math.radians(17)
+
+    p2 = particle.PrimordialParticle(0.1, 0)
+    p2.radius = 0.5
+    p2.alpha = math.radians(180)
+    p2.beta = math.radians(17)
+    sim.add_entity(p1)
+    sim.add_entity(p2)
+    """
 
     return sim

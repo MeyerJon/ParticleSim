@@ -288,13 +288,14 @@ class PrimordialParticle(entity.Entity):
 
         # Particle attributes
         self.velocity = 0.005
-        self.orientation = 0
+        self.orientation = math.pi / 2.0
         self.alpha = math.radians(10)
         self.beta = math.radians(5)
         self.radius = 0.1
 
         self._neighbourhood_size = 0
         self.size = 0.01
+        self._can_move = True
 
 
     # Simulation
@@ -308,7 +309,7 @@ class PrimordialParticle(entity.Entity):
         N_right = 0
         for e in entities:
 
-            if e is self:
+            if e is self or e.paused:
                 continue
 
             vec = (e.pos[0] - self.pos[0], e.pos[1] - self.pos[1])
@@ -325,7 +326,7 @@ class PrimordialParticle(entity.Entity):
                 angle = self.calculate_vector_angle(own_vec, vec)
 
                 # Check if left or right
-                if 0 < angle and angle < math.pi:
+                if 0 < angle and angle < (math.pi / 2.0):
                     N_left += 1
                 else:
                     N_right += 1
@@ -333,10 +334,9 @@ class PrimordialParticle(entity.Entity):
         sign = 1
         if N_left > N_right:
             sign = -1
-        elif N_left == N_left:
+        elif N_left == N_right:
             sign = 0
-            
-
+        
         # Calculate change in orientation
         self.orientation += self.alpha + (sign * self.beta * (N_right + N_left))
 
@@ -344,7 +344,7 @@ class PrimordialParticle(entity.Entity):
 
     def finish_tick(self):
 
-        if self.paused or self.mfd:
+        if self.paused or self.mfd or not self._can_move:
             return
 
         # Update position
@@ -373,7 +373,7 @@ class PrimordialParticle(entity.Entity):
     # Graphics
     def draw(self, batch=None):
 
-        color = self.colors_heatmap()
+        color = self.colors_density()
         indices, verts, colors = Shapes.make_circle(n_points=20, center=self.pos, radius=self.size, color=color)
 
         if batch is None:
@@ -410,4 +410,20 @@ class PrimordialParticle(entity.Entity):
                     int(150  / (self._neighbourhood_size + 1))
                 )
         color = (min(color[0], 255), min(color[1], 255), min(color[2], 255))
+        return color
+
+    def colors_density(self):
+        # Colors have fixed values based on region density
+
+        color = (255, 255, 255)
+        if self._neighbourhood_size > 8:
+            color = (240, 230, 10)
+        elif self._neighbourhood_size >= 6:
+            color = (20, 250, 100)
+        elif self._neighbourhood_size >= 3:
+            color = (10, 140, 180)
+        elif self._neighbourhood_size > 1:
+            color = (20, 30, 130)
+        else:
+            color = (10, 10, 110)
         return color
