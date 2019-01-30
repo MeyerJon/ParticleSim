@@ -145,6 +145,12 @@ def setup():
     g1.set_fluct_func(Transform.get_oscillator(3, 0.5))    
     #sim.add_entity(g1)
 
+    f1 = generator.FieldGenerator(0, -1, force=(0, -0.00025), range=0.5)
+    sim.add_entity(f1)
+
+    f2 = generator.FieldGenerator(0, 1, force=(0, 0.00025), range=0.5)
+    sim.add_entity(f2)
+
     # Create emitters
     from Particles.models.types import emitter
     e1 = emitter.Emitter(x=0, y=0, size=0.01, sim=sim, PType=types.PType1, freq=0.5)

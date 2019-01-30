@@ -20,6 +20,6 @@ class Entity:
         """ Returns boolean to indicate if entity should be deleted. """
         return self.mfd
 
-    def draw(self, dt):
+    def draw(self, batch=None):
         """ (Abstract) Returns the vertex list to be drawn, as well as the mode """
         raise NotImplementedError

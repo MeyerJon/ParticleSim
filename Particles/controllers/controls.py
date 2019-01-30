@@ -11,12 +11,16 @@ def find_closest_entity(pos, entities, r):
 
     closest = (None, None)
     for e in entities:
-        d = Transform.dist(pos, e.pos) - e.size
-        if d <= r:
-            if closest[1] is None:
-                closest = (e, d)
-            elif closest[1] > d:
-                closest = (e, d)
+        try:
+            d = Transform.dist(pos, e.pos) - e.size
+            if d <= r:
+                if closest[1] is None:
+                    closest = (e, d)
+                elif closest[1] > d:
+                    closest = (e, d)
+        except AttributeError:
+            # Not a selectable entity
+            continue
     return closest[0]
 
 def change_particle_velocity(symbol, particle):

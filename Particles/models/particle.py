@@ -134,7 +134,7 @@ class Particle(entity.Entity):
 
             try:
                 f = self.calculate_force(e)
-            except NameError:
+            except AttributeError:
                 continue # Not a particle, we don't care
 
             # If debug view active, save force line
