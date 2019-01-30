@@ -5,7 +5,7 @@ import random, math
 """
     Class that creates some type of particle & pushes it away
 """
-class Emitter(particle.Particle):
+class Emitter(particle.ForceParticle):
 
     def __init__(self, x=0, y=0, size=0.005, sim=None, PType=None, freq=0.5, PSize=0.005):
 

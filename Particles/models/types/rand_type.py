@@ -4,7 +4,7 @@ import random
 """
     A type that randomly decides its force mods
 """
-class RandomType(particle.Particle):
+class RandomType(particle.ForceParticle):
     
     def __init__(self, x=0, y=0, size=0.005):
 

@@ -49,7 +49,7 @@ def save_to_json(sim, fname="sim"):
         # Go over each entity and save its properties
         for e in sim.entities:
 
-            if issubclass(type(e), particle.Particle):
+            if issubclass(type(e), particle.ForceParticle):
                 try:
                     p_data = dict()
                     p_data["type"] = str(type(e))

@@ -37,7 +37,7 @@ class Simulation:
             deleted += 1
 
         for e in self.entities:
-            if issubclass(type(e), particle.Particle):
+            if issubclass(type(e), particle.ForceParticle):
                 e.finish_tick()
 
     # Data management

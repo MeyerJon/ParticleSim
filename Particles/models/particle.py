@@ -82,7 +82,7 @@ def border_push(pos, vel):
     return (F[0] + vel[0], F[1] + vel[1])
 
 
-class Particle(entity.Entity):
+class ForceParticle(entity.Entity):
 
     def __init__(self, x=0, y=0, size=0.005, mass=0.005):
 

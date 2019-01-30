@@ -2,7 +2,7 @@ from Particles.models import particle
 from Particles.utils import Transform
 
 
-class PType1(particle.Particle):
+class PType1(particle.ForceParticle):
 
     def __init__(self, x=0, y=0, size=0.008, mass=0.1):
 
@@ -20,7 +20,7 @@ class PType1(particle.Particle):
         return (255, 0, 0)
 
 
-class PType2(particle.Particle):
+class PType2(particle.ForceParticle):
 
     def __init__(self, x=0, y=0, size=0.007, mass=0.085):
 
@@ -38,7 +38,7 @@ class PType2(particle.Particle):
         return (0, 255, 0)
 
 
-class PType3(particle.Particle):
+class PType3(particle.ForceParticle):
 
     def __init__(self, x=0, y=0, size=0.0055, mass=0.06):
 
@@ -56,7 +56,7 @@ class PType3(particle.Particle):
         return (0, 0, 255)
 
 
-class PType4(particle.Particle):
+class PType4(particle.ForceParticle):
 
     def __init__(self, x=0, y=0, size=0.0035, mass=0.03):
 
@@ -75,7 +75,7 @@ class PType4(particle.Particle):
         return (220, 160, 10)
 
 
-class PType5(particle.Particle):
+class PType5(particle.ForceParticle):
 
     def __init__(self, x=0, y=0, size=0.004, mass=0.005):
         

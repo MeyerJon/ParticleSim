@@ -6,7 +6,7 @@ from pyglet import graphics, gl
 """
     Particle that applies force to others, but isn't acted upon
 """
-class Generator(particle.Particle):
+class Generator(particle.ForceParticle):
 
     def __init__(self, x=0, y=0, size=0, force=0):
 
