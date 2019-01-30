@@ -387,9 +387,9 @@ class PrimordialParticle(entity.Entity):
 
     def colors_heatmap(self):
         color = (
-                    50 * self._neighbourhood_size,
+                    45 * self._neighbourhood_size,
                     2 * self._neighbourhood_size * self._neighbourhood_size,
-                    int(100 / (self._neighbourhood_size + 1))
+                    int(110 / (self._neighbourhood_size + 1))
                 )
         color = (min(color[0], 255), min(color[1], 255), min(color[2], 255))
         return color
@@ -411,5 +411,3 @@ class PrimordialParticle(entity.Entity):
                 )
         color = (min(color[0], 255), min(color[1], 255), min(color[2], 255))
         return color
-                
-    
