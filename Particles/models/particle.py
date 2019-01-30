@@ -82,6 +82,9 @@ def border_push(pos, vel):
     return (F[0] + vel[0], F[1] + vel[1])
 
 
+"""
+    Base class for all particles that interact using some (physics-based) force system.
+"""
 class ForceParticle(entity.Entity):
 
     def __init__(self, x=0, y=0, size=0.005, mass=0.005):
@@ -272,3 +275,141 @@ class ForceParticle(entity.Entity):
         n = self.trail_points.length()
         verts, colors = Shapes.make_points(self.trail_points._list)
         pyglet.graphics.draw(n, pyglet.gl.GL_POINTS, verts, colors)
+
+
+"""
+    Particle for emulating primordial particle system
+"""
+class PrimordialParticle(entity.Entity):
+
+    def __init__(self, x, y):
+
+        super().__init__(x, y)
+
+        # Particle attributes
+        self.velocity = 0.005
+        self.orientation = 0
+        self.alpha = math.radians(10)
+        self.beta = math.radians(5)
+        self.radius = 0.1
+
+        self._neighbourhood_size = 0
+        self.size = 0.01
+
+
+    # Simulation
+    def tick(self, entities):
+
+        if self.paused or self.mfd:
+            return
+        
+        # Calculate neighbourhood (sign & amount of neighbours)
+        N_left = 0
+        N_right = 0
+        for e in entities:
+
+            if e is self:
+                continue
+
+            vec = (e.pos[0] - self.pos[0], e.pos[1] - self.pos[1])
+            dist_sq = (vec[0] * vec[0]) + (vec[1] * vec[1])
+
+            if dist_sq <= (self.radius * self.radius):
+
+                # Calculate angle between vectors
+                o = self.orientation
+                d_x = math.cos(o) * self.velocity
+                d_y = math.sin(o) * self.velocity
+                own_vec = (self.pos[0] + d_x, self.pos[1] + d_y)
+                own_vec = (own_vec[0] - self.pos[0], own_vec[1] - self.pos[1])
+                angle = self.calculate_vector_angle(own_vec, vec)
+
+                # Check if left or right
+                if 0 < angle and angle < math.pi:
+                    N_left += 1
+                else:
+                    N_right += 1
+        
+        sign = 1
+        if N_left > N_right:
+            sign = -1
+        elif N_left == N_left:
+            sign = 0
+            
+
+        # Calculate change in orientation
+        self.orientation += self.alpha + (sign * self.beta * (N_right + N_left))
+
+        self._neighbourhood_size = N_left + N_right
+
+    def finish_tick(self):
+
+        if self.paused or self.mfd:
+            return
+
+        # Update position
+        o = self.orientation
+        d_x = math.cos(o) * self.velocity
+        d_y = math.sin(o) * self.velocity
+        self.pos = border_stop((self.pos[0] + d_x, self.pos[1] + d_y))
+
+    def calculate_vector_angle(self, v1, v2):
+        """ Calculates angle between two vectors. """
+        vec_len = lambda v : math.sqrt((v[0] * v[0]) + (v[1] * v[1]))
+        l_v1 = vec_len(v1)
+        l_v2 = vec_len(v2)
+        len_prod = l_v1 * l_v2
+        dot_prod = (v1[0] * v2[0]) + (v1[1] * v2[1])
+        angle = 0.0
+        
+        try:
+            cos = dot_prod / len_prod
+            angle = math.acos(cos)
+        except (ValueError, ZeroDivisionError):
+            pass # Ignore orthogonal vectors
+        return angle
+
+
+    # Graphics
+    def draw(self, batch=None):
+
+        color = self.colors_heatmap()
+        indices, verts, colors = Shapes.make_circle(n_points=20, center=self.pos, radius=self.size, color=color)
+
+        if batch is None:
+            # Draw directly
+            n = len(verts[1]) // 2
+            pyglet.graphics.draw(n, pyglet.gl.GL_POLYGON, verts, colors)
+        else:
+            # Add indexed vertices to batch
+            n = len(verts[1]) // 2
+            batch.add_indexed(n, pyglet.gl.GL_TRIANGLES, None, indices, verts, colors)
+
+    def colors_heatmap(self):
+        color = (
+                    50 * self._neighbourhood_size,
+                    2 * self._neighbourhood_size * self._neighbourhood_size,
+                    int(100 / (self._neighbourhood_size + 1))
+                )
+        color = (min(color[0], 255), min(color[1], 255), min(color[2], 255))
+        return color
+
+    def colors_modulo(self):
+        color = (
+                    50 * (12 % (self._neighbourhood_size + 1)),
+                    50 * (8 % (self._neighbourhood_size + 1)),
+                    50  * (10 % (self._neighbourhood_size + 1))
+                )
+        color = (min(color[0], 255), min(color[1], 255), min(color[2], 255))
+        return color
+
+    def colors_simple(self):
+        color = (
+                    20,
+                    10 * ((self._neighbourhood_size)**2),
+                    int(150  / (self._neighbourhood_size + 1))
+                )
+        color = (min(color[0], 255), min(color[1], 255), min(color[2], 255))
+        return color
+                
+    

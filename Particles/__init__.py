@@ -50,6 +50,19 @@ def run_app(config=None):
         Profiler.add_profiler_data("draw_times", time.time() - starttime)
         if fps_counter: fps_counter.draw()
     
+    # Generate history (run the simulation without opening the window)
+    # This is useful to save time on drawing
+    history_length = 0
+    if history_length > 0:
+        paused_state = sim.paused
+        Logger.log_system("Generating {} ticks of history.".format(history_length))
+        starttime = time.time()
+        sim.paused = False
+        for _ in range(history_length):
+            controller.tick()
+        sim.paused = paused_state
+        Logger.log_system("Finished generating history. ({} s)".format((time.time() - starttime)))
+
     # Main app loop
     pyglet.app.run()
 

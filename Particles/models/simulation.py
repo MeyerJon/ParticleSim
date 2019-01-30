@@ -37,7 +37,7 @@ class Simulation:
             deleted += 1
 
         for e in self.entities:
-            if issubclass(type(e), particle.ForceParticle):
+            if issubclass(type(e), particle.ForceParticle) or issubclass(type(e), particle.PrimordialParticle):
                 e.finish_tick()
 
     # Data management
@@ -105,27 +105,13 @@ def setup():
     p1 = types.PType1(0, 0, 0.085, mass=1)
     p1._can_move = False
 
-    p2 = types.PType4(0.85, 0, 0.015, mass=0.0025)
-    p2.draw_trail_points = True
-    p2.trail_points_interval = 1
-    p2.trail_points.set_limit(160)
-    p2._velocity = [0, 0.035 + 0.00049]
-
-    sim.add_entity(p1)
-    sim.add_entity(p2)
+    #sim.add_entity(p1)
     sim.paused = True
 
+    """
+    # Orbitters for p1
     for i in range(0):
-        t = random.choice(active_types)
-        #t = types.PType1
-        s = (random.randint(130, 130) / 10000.0)
-        x = (random.randint(40, 160) - 100) / 100.0
-        y = (random.randint(40, 160) - 100) / 100.0
-        p = t(x=x, y=y, size=s)
-        sim.add_entity(p)
-
-    for i in range(0):
-        c = p2.pos
+        c = p1.pos
         r = random.randint(8, 10) / 100.0
         ad = random.randint(0, 360)
         ar = math.radians(ad)
@@ -133,31 +119,22 @@ def setup():
         y = r * math.sin(ar) + c[1]
         s = 0.004
         p = types.PType5(x, y, size=s, mass=0.0000075)
-        s_ratio = (p.mass) / (p2.mass)
+        s_ratio = (p.mass) / (p1.mass)
         vx = -s_ratio * math.cos(math.radians(ad + 90)) * 1.2
         vy = -s_ratio * math.sin(math.radians(ad + 90)) * 1.2
         p._velocity = [vx, vy]
         sim.add_entity(p)
+    """
 
-    from Particles.models.types import generator
-    # Create generators
-    g1 = generator.Generator(x=0.3, y=-0.3, size=0.01, force=-2)
-    g1.set_fluct_func(Transform.get_oscillator(3, 0.5))    
-    #sim.add_entity(g1)
-
-    f1 = generator.FieldGenerator(0, -1, force=(0, -0.00025), range=0.5)
-    sim.add_entity(f1)
-
-    f2 = generator.FieldGenerator(0, 1, force=(0, 0.00025), range=0.5)
-    sim.add_entity(f2)
-
-    # Create emitters
-    from Particles.models.types import emitter
-    e1 = emitter.Emitter(x=0, y=0, size=0.01, sim=sim, PType=types.PType1, freq=0.5)
-    e1.PLimit = 100
-    e1.F_push = -5
-    e1.PSize = 0.01
-    e1.range = 0.05
-    #sim.add_entity(e1)
+    # Primordial particles
+    for _ in range(225):
+        x = (random.randint(10, 190) - 100) / 100.0
+        y = (random.randint(10, 190) - 100) / 100.0
+        p = particle.PrimordialParticle(x, y)
+        p.radius = 0.085
+        p.velocity = 0.01
+        p.alpha = math.radians(120)
+        p.beta = math.radians(27)
+        sim.add_entity(p)
 
     return sim
