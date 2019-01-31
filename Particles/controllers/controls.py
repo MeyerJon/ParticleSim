@@ -74,6 +74,18 @@ def toggle_particle_movable(particle):
         Logger.log_warning("Can't toggle movability of '{}.'".format(particle))
 
 
+# Primordial Particle attributes
+def set_particle_radius(sim, r):
+    """ Sets all PrimordialParticle's radii. Note: This is rather costly """
+
+    for e in sim.entities:
+        try:
+            e.radius = r
+        except AttributeError:
+            Logger.log_warning("Can't set radius of entity: {}".format(e))
+    Logger.log_custom("control", "Set global particle radius to {}.".format(r))
+
+
 # Simulation model methods
 def toggle_pause(target):
 
@@ -149,12 +161,11 @@ def cycle_trail_length(particle, increase=False):
     if particle is None:
         return
 
-    old = particle.trail_points.limit
-    inc = -1 * (int(math.log10(old)) + 1)
-    if increase:
-        inc *= -1 # Make increment positive
-    
     try:
-        particle.trail_points.set_limit(old + inc)
-    except:
+        old = particle.trail_points.limit
+        inc = -1 * (int(math.log10(old)) + 1)
+        if increase:
+            inc *= -1 # Make increment positive
+            particle.trail_points.set_limit(old + inc)
+    except AttributeError:
         Logger.log_warning("Cannot change trail length of selected entity.")

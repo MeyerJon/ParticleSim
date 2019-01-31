@@ -27,12 +27,15 @@ def screen_to_world(pos):
     y = (pos[1] - ratio_y) / ratio_y
     return (x, y)
 
+def screen_dist_to_world_dist(d):
+    ratio = d / (2 * min(WIN_HEIGHT, WIN_WIDTH))
+    return ratio
+
 def dist(pos1, pos2):
     d_x = (pos1[0] - pos2[0])
     d_y = (pos1[1] - pos2[1])
 
     return math.sqrt((d_x * d_x) + (d_y * d_y))
-
 
 def dist_squared(pos1, pos2):
     d_x = (pos1[0] - pos2[0])

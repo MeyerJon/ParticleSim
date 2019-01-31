@@ -434,16 +434,16 @@ class PrimordialParticle(Particle):
         # Colors have fixed values based on region density
 
         color = (255, 255, 255)
-        if self._neighbourhood_size > 8:
+        if self._neighbourhood_size > 9:
             color = (240, 230, 10)
-        elif self._neighbourhood_size >= 6:
+        elif self._neighbourhood_size >= 7:
             color = (20, 250, 100)
-        elif self._neighbourhood_size >= 3:
+        elif self._neighbourhood_size >= 5:
             color = (10, 140, 180)
-        elif self._neighbourhood_size > 1:
-            color = (20, 30, 130)
+        elif self._neighbourhood_size > 3:
+            color = (20, 25, 120)
         else:
-            color = (10, 10, 110)
+            color = (10, 10, 190)
         return color
 
     def draw_debug_view(self):

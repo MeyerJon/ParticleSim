@@ -66,7 +66,6 @@ class SimController:
                        }
                 controls.spawn_particle(self.sim, data)
 
-    
     def on_key_press(self, symbol, modifiers):
         # Handle key press
         
@@ -126,6 +125,13 @@ class SimController:
                 self.cur_creation_index = ((self.cur_creation_index - 1) % len(self.creatable_types))
                 Logger.log_custom("control", "Changed creation type to {}.".format(self.creatable_types[self.cur_creation_index]))
     
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        pos = Transform.screen_to_world((x, y))
+        d_x = Transform.screen_dist_to_world_dist(dx)
+        d_y = Transform.screen_dist_to_world_dist(dy)
+        self._ui.on_drag(self, pos, (d_x, d_y), buttons)
+
+        
     # Simulation control
 
     def tick(self, dt=1):

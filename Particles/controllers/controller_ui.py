@@ -25,7 +25,10 @@ class CUI_object:
     def on_click(self):
         raise NotImplementedError
 
-    def is_clicked(self, pos):
+    def on_drag(self):
+        raise NotImplementedError
+
+    def child_clicked(self, pos):
         """ Returns True if pos is within the boundaries of this object. """
         raise NotImplementedError
 
@@ -48,23 +51,26 @@ class CUI_canvas(CUI_object):
 
         super().draw()
 
-    def is_clicked(self, pos):
+    def child_clicked(self, pos):
 
         if pos[0] > self.anchor[0] and pos[0] < self.anchor[0] + self.w \
            and pos[1] < self.anchor[1] and pos[1] > self.anchor[1] - self.h:
 
-            # Click is inside rect
-            return True
-        
-        return False
+            # Click is inside rect, check if any children clicked
+            clicked = self
+            for c in self.children:
+                descendant_clicked = c.child_clicked(pos)
+                if descendant_clicked is not None:
+                    clicked = descendant_clicked
+            return clicked
+            
+        return None
 
     def on_click(self, controller, pos, btn):
+        return # Default canvas not clickable
 
-        # Pass event through children to determine 'actual' target & execute on_click of that target
-
-        for c in self.children:
-            if c.is_clicked(pos):
-                c.on_click(controller, pos, btn)
+    def on_drag(self, controller, pos, diff, btn):
+        return # Canvas not (yet?) draggable
 
 
 class CUI_label(CUI_object):
@@ -87,6 +93,64 @@ class CUI_label(CUI_object):
 
     def is_clicked(self, pos):
         return False # Labels aren't clickable
+
+
+class CUI_slider(CUI_object):
+
+    def __init__(self, anchor, w, h, min_val=0, max_val=1):
+
+        super().__init__(anchor)
+
+        self.w = w
+        self.h = h
+
+        # Values
+        self.speed = 7.5
+        self.value = min_val
+        self.min_val = min_val
+        self.max_val = max_val
+
+        # Graphics
+        self.bar = CUI_canvas(self.anchor, self.w, self.h, color=(120, 120, 120))
+        self.bar.on_click = self.on_click
+        self.children.append(self.bar)
+        # Slider selector
+        slider_w = self.w * 0.13
+        slider_h = self.h * 1.85
+        slider_anchor = (self.anchor[0] - slider_w / 2.0, self.anchor[1] - ((self.h - slider_h) / 2.0))
+        self.slider = CUI_canvas(slider_anchor, slider_w, slider_h, color=(180, 20, 20))
+        self.slider.parent = self
+        self.slider.on_drag = self.on_drag # Otherwise, the canvas' on_drag is called by the ControllerUI
+        self.children.append(self.slider)
+
+    def child_clicked(self, pos):
+        slider_clicked = self.slider.child_clicked(pos)
+        if slider_clicked is not None:
+            return self.slider
+        else:
+            return self.bar.child_clicked(pos)
+
+    def on_click(self, controller, pos, btn):
+        # Set the selector & value according to the click
+        self.slider.anchor = (pos[0] - (self.slider.w / 2.0), self.slider.anchor[1])
+        ratio = (pos[0] - self.anchor[0]) / self.w
+        self.value = ratio * (self.max_val - self.min_val)
+        self.on_change(self, controller)
+
+    def on_drag(self, controller, pos, diff, btns):
+        # Keep the selector under the mouse & on the bar
+        new_x = self.slider.anchor[0] + (self.speed * diff[0])
+        if new_x >= (self.anchor[0] - self.slider.w / 2.0) and \
+           new_x <= self.anchor[0] + self.w - (self.slider.w / 2.0):
+            self.slider.anchor = (new_x, self.slider.anchor[1])
+
+            # Update the associated value
+            self.value = (new_x - self.anchor[0]) / self.w
+            self.value *= (self.max_val - self.min_val)
+            self.on_change(self, controller)
+
+    def on_change(self, controller):
+        return # Ignore by default
 
 
 class ControllerUI:
@@ -131,9 +195,23 @@ class ControllerUI:
             return False
 
         for e in self.elements:
-            if e.is_clicked(pos):
-                e.on_click(controller, pos, btn)
+            clicked = e.child_clicked(pos)
+            if clicked is not None:
+                clicked.on_click(controller, pos, btn)
         
+        return True
+
+    def on_drag(self, controller, pos, diff, btns):
+        """ Passes drag (world coordinates) from controller to elements of CUI """
+
+        if not self.visible or abs(pos[0]) < self.anchor[0]:
+            return False
+
+        for e in self.elements:
+            clicked = e.child_clicked(pos)
+            if clicked is not None:
+                clicked.on_drag(controller, pos, diff, btns)
+
         return True
 
 
@@ -158,6 +236,15 @@ def setup_UI(c):
     pause_btn_func = lambda c, p, btn: controls.toggle_pause(c.sim)
     c.add_button(pause_btn_anchor, pause_btn_w, pause_btn_h, 
                  color=(180, 10, 5), parent=c.bg, on_click=pause_btn_func)
+
+    # Sliders
+    # Radius slider
+    r_slider_w = c.bg.w * 0.8
+    r_slider_h = 0.045
+    r_slider_anchor = (calc_anchor_x(c.bg.anchor[0], c.bg.w, r_slider_w), c.bg.anchor[1] - 0.4)
+    r_slider = CUI_slider(r_slider_anchor, r_slider_w, r_slider_h, min_val=0.1, max_val=0.5)
+    r_slider.on_change = lambda self, c : controls.set_particle_radius(c.sim, self.value)
+    c.add_element(r_slider, c.bg)
 
     # Particle control panel
     pc_panel_w = c.bg.w * 0.9
