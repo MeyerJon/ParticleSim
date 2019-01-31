@@ -165,7 +165,7 @@ class ForceParticle(Particle):
                 new_vel_total = (new_vel_total[0] + f[0], new_vel_total[1] + f[1])
         
         # Set velocity
-        self._velocity = border_push(self.pos, new_vel_total)
+        self.velocity = border_push(self.pos, new_vel_total)
         
     def finish_tick(self):
         """ Can be called after Particle.tick to finish operations. """
@@ -180,7 +180,7 @@ class ForceParticle(Particle):
             self.trail_points.pop()
 
         if self._can_move:
-            new_pos = (self.pos[0] + self._velocity[0], self.pos[1] + self._velocity[1])
+            new_pos = (self.pos[0] + self.velocity[0], self.pos[1] + self.velocity[1])
             self.pos = border_stop(new_pos)
     
     def calculate_force(self, e):
@@ -307,7 +307,7 @@ class PrimordialParticle(Particle):
         self.orientation = math.pi / 2.0
         self.alpha = math.radians(alpha_d)
         self.beta = math.radians(beta_d)
-        self.radius = 0.1
+        self.radius = radius
 
         self._neighbourhood_size = 0
 
@@ -321,16 +321,16 @@ class PrimordialParticle(Particle):
         # Calculate neighbourhood (sign & amount of neighbours)
         N_left = 0
         N_right = 0
+        N_total = 0
         for e in entities:
 
-            if e is self or e.paused:
+            if e == self or e.paused:
                 continue
 
             vec = (e.pos[0] - self.pos[0], e.pos[1] - self.pos[1])
             dist_sq = (vec[0] * vec[0]) + (vec[1] * vec[1])
-            dist = Transform.dist(self.pos, e.pos)
 
-            if dist <= self.radius:
+            if dist_sq <= (self.radius * self.radius):
 
                 # Calculate angle between vectors
                 d_x = math.cos(self.orientation) * self.velocity[0]
@@ -344,6 +344,7 @@ class PrimordialParticle(Particle):
                     N_left += 1
                 else:
                     N_right += 1
+                N_total += 1 # Count separately because orthogonal matrices still count
         
         sign = 1
         if N_left > N_right:
@@ -352,9 +353,9 @@ class PrimordialParticle(Particle):
             sign = 0
         
         # Calculate change in orientation
-        self.orientation += self.alpha + (sign * self.beta * (N_right + N_left))
+        self.orientation += self.alpha + (sign * self.beta * N_total)
 
-        self._neighbourhood_size = N_left + N_right
+        self._neighbourhood_size = N_total
 
     def finish_tick(self):
 
@@ -447,7 +448,7 @@ class PrimordialParticle(Particle):
 
     def draw_debug_view(self):
         # Draw circle indicating range
-        indices, verts, colors = Shapes.make_circle(center=self.pos, radius=self.radius)
+        indices, verts, colors = Shapes.make_circle(center=self.pos, radius=self.radius / 2.0)
         # Overwrite degenerate first point
         verts[1][0:1] = verts[1][-2:-1]
         n_points = len(verts[1]) // 2

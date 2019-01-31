@@ -68,7 +68,7 @@ def create_particle(data):
     # Set particle attributes
     try:
         p.mass = data["mass"]
-        p._velocity = data["velocity"]
+        p.velocity = data["velocity"]
         p.size = data["size"]
         p._can_move = data["can_move"]
         p.paused = data["paused"]
