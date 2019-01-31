@@ -83,21 +83,38 @@ def border_push(pos, vel):
 
 
 """
+    Base class for particles. Controller should be based on this interface
+"""
+class Particle(entity.Entity):
+
+    def __init__(self, x, y, size=0):
+
+        super().__init__(x, y)
+        
+        # Particle parameters
+        self.velocity = (0, 0)
+
+        # Graphics
+        self.size = size
+        self.debug_view = False
+
+        # Other
+        self._can_move = True
+
+
+"""
     Base class for all particles that interact using some (physics-based) force system.
 """
-class ForceParticle(entity.Entity):
+class ForceParticle(Particle):
 
     def __init__(self, x=0, y=0, size=0.005, mass=0.005):
 
-        super().__init__(x, y)
-
-        self._can_move = True
+        super().__init__(x, y, size)
 
         # Particle parameters
         self.lifetime = 0
         self.mass = mass
         self.lifespan = None
-        self._velocity = [0, 0]
         
         # Force parameters
         self.F_size_mod = 0.01
@@ -106,7 +123,6 @@ class ForceParticle(entity.Entity):
         self.interacting_types = dict()
 
         # Graphics
-        self.size = size
         self.force_lines = list()
         self.trail_points = DataStructures.LimitedList(150)
         self.trail_points_interval = 2
@@ -130,7 +146,7 @@ class ForceParticle(entity.Entity):
         # Calculate forces from other particles
         self.force_lines = list()
         # Account for friction
-        new_vel_total = (self._velocity[0] * self.F_friction, self._velocity[1] * self.F_friction)
+        new_vel_total = (self.velocity[0] * self.F_friction, self.velocity[1] * self.F_friction)
         for e in entities:
             if e == self or e.mfd or e.paused:
                 continue
@@ -280,22 +296,20 @@ class ForceParticle(entity.Entity):
 """
     Particle for emulating primordial particle system
 """
-class PrimordialParticle(entity.Entity):
+class PrimordialParticle(Particle):
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, vel=0.005, alpha_d=10, beta_d=7, radius=0.1):
 
-        super().__init__(x, y)
+        super().__init__(x, y, size=0.01)
 
         # Particle attributes
-        self.velocity = 0.005
+        self.velocity = (vel, vel)
         self.orientation = math.pi / 2.0
-        self.alpha = math.radians(10)
-        self.beta = math.radians(5)
+        self.alpha = math.radians(alpha_d)
+        self.beta = math.radians(beta_d)
         self.radius = 0.1
 
         self._neighbourhood_size = 0
-        self.size = 0.01
-        self._can_move = True
 
 
     # Simulation
@@ -314,13 +328,13 @@ class PrimordialParticle(entity.Entity):
 
             vec = (e.pos[0] - self.pos[0], e.pos[1] - self.pos[1])
             dist_sq = (vec[0] * vec[0]) + (vec[1] * vec[1])
+            dist = Transform.dist(self.pos, e.pos)
 
-            if dist_sq <= (self.radius * self.radius):
+            if dist <= self.radius:
 
                 # Calculate angle between vectors
-                o = self.orientation
-                d_x = math.cos(o) * self.velocity
-                d_y = math.sin(o) * self.velocity
+                d_x = math.cos(self.orientation) * self.velocity[0]
+                d_y = math.sin(self.orientation) * self.velocity[1]
                 own_vec = (self.pos[0] + d_x, self.pos[1] + d_y)
                 own_vec = (own_vec[0] - self.pos[0], own_vec[1] - self.pos[1])
                 angle = self.calculate_vector_angle(own_vec, vec)
@@ -348,9 +362,8 @@ class PrimordialParticle(entity.Entity):
             return
 
         # Update position
-        o = self.orientation
-        d_x = math.cos(o) * self.velocity
-        d_y = math.sin(o) * self.velocity
+        d_x = math.cos(self.orientation) * self.velocity[0]
+        d_y = math.sin(self.orientation) * self.velocity[1]
         self.pos = border_stop((self.pos[0] + d_x, self.pos[1] + d_y))
 
     def calculate_vector_angle(self, v1, v2):
@@ -384,6 +397,10 @@ class PrimordialParticle(entity.Entity):
             # Add indexed vertices to batch
             n = len(verts[1]) // 2
             batch.add_indexed(n, pyglet.gl.GL_TRIANGLES, None, indices, verts, colors)
+
+        # Debug view
+        if self.debug_view:
+            self.draw_debug_view()
 
     def colors_heatmap(self):
         color = (
@@ -427,3 +444,17 @@ class PrimordialParticle(entity.Entity):
         else:
             color = (10, 10, 110)
         return color
+
+    def draw_debug_view(self):
+        # Draw circle indicating range
+        indices, verts, colors = Shapes.make_circle(center=self.pos, radius=self.radius)
+        # Overwrite degenerate first point
+        verts[1][0:1] = verts[1][-2:-1]
+        n_points = len(verts[1]) // 2
+        pyglet.gl.glLineWidth(1)
+        pyglet.graphics.draw(n_points, pyglet.gl.GL_LINE_LOOP, verts, colors)
+
+        # Draw label showing # neighbours
+        label_pos = (self.pos[0], self.pos[1] + 3*self.size + 0.015)
+        n_label = Shapes.make_label(str(self._neighbourhood_size), label_pos, size=14)
+        n_label.draw()

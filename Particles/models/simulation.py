@@ -128,15 +128,16 @@ def setup():
 
     # Primordial particles
     
-    for _ in range(200):
+    for _ in range(100):
         x = (random.randint(15, 185) - 100) / 100.0
         y = (random.randint(15, 185) - 100) / 100.0
-        p = particle.PrimordialParticle(x, y)
-        p.size = 0.0065
-        p.radius = 0.18 #0.155
-        p.velocity = 0.0075 #0.013
-        p.alpha = math.radians(180) #math.radians(180)
-        p.beta = math.radians(17) #math.radians(17)
+        size = 0.0125
+        radius = 0.22 #0.155
+        velocity = 0.0175 #0.013
+        alpha = 180 #math.radians(180)
+        beta = 17 #math.radians(17)
+        p = particle.PrimordialParticle(x, y, vel=velocity, alpha_d=alpha, beta_d=beta, radius=radius)
+        p.size = size
         sim.add_entity(p)
     
     """

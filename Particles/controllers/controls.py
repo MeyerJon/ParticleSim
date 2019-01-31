@@ -52,8 +52,11 @@ def change_particle_velocity(symbol, particle):
     elif symbol == key.DOWN:
         speed_incr = (0, -step)
 
-    v_old = particle._velocity
-    particle._velocity = ((v_old[0] * mod) + speed_incr[0], (v_old[1] * mod) + speed_incr[1])
+    try:
+        v_old = particle.velocity
+        particle.velocity = ((v_old[0] * mod) + speed_incr[0], (v_old[1] * mod) + speed_incr[1])
+    except AttributeError:
+        Logger.log_warning("Selected entity is not a particle. Can't change velocity.")
 
 def delete_particle(particle):
     
@@ -67,7 +70,7 @@ def toggle_particle_movable(particle):
 
     try:
         particle._can_move = not particle._can_move
-    except NameError:
+    except AttributeError:
         Logger.log_warning("Can't toggle movability of '{}.'".format(particle))
 
 
@@ -110,15 +113,21 @@ def spawn_particle(sim, data):
 def toggle_debug_view(particle):
     if particle is None:
         return
-    particle.debug_view = not particle.debug_view
+    try:
+        particle.debug_view = not particle.debug_view
+    except:
+        Logger.log_warning("Can't toggle debug view of selected entity.")
 
 def toggle_trail(particle):
     if particle is None:
         return
-    particle.draw_trail_points = not particle.draw_trail_points
-    if particle.draw_trail_points:
-        # Clear previous trail if turning it back on
-        particle.trail_points.clear()
+    try:
+        particle.draw_trail_points = not particle.draw_trail_points
+        if particle.draw_trail_points:
+            # Clear previous trail if turning it back on
+            particle.trail_points.clear()
+    except AttributeError:
+        Logger.log_warning("Can't draw trail of selected entity.")
 
 def cycle_trail_density(particle, increase=False):
     if particle is None:
@@ -128,9 +137,12 @@ def cycle_trail_density(particle, increase=False):
     if increase:
         inc = 1
 
-    new = particle.trail_points_interval + inc
-    if new > 0:
-        particle.trail_points_interval = new
+    try:
+        new = particle.trail_points_interval + inc
+        if new > 0:
+            particle.trail_points_interval = new
+    except:
+        Logger.log_warning("Can't adjust trail density of selected entity.")
 
 def cycle_trail_length(particle, increase=False):
 
@@ -145,4 +157,4 @@ def cycle_trail_length(particle, increase=False):
     try:
         particle.trail_points.set_limit(old + inc)
     except:
-        Logger.log_warning("Cannot change trail length.")
+        Logger.log_warning("Cannot change trail length of selected entity.")
