@@ -37,8 +37,10 @@ class Simulation:
             deleted += 1
 
         for e in self.entities:
-            if issubclass(type(e), particle.ForceParticle) or issubclass(type(e), particle.PrimordialParticle):
+            try:
                 e.finish_tick()
+            except AttributeError:
+                pass
 
     # Data management
     def add_entity(self, entity):
@@ -101,38 +103,15 @@ def setup():
 
     # Create particles
     active_types = [types.PType1, types.PType2, types.PType3, types.PType4]
-
-    p1 = types.PType1(0, 0, 0.085, mass=1)
-    p1._can_move = False
-
-    #sim.add_entity(p1)
     sim.paused = True
 
-    """
-    # Orbitters for p1
-    for i in range(0):
-        c = p1.pos
-        r = random.randint(8, 10) / 100.0
-        ad = random.randint(0, 360)
-        ar = math.radians(ad)
-        x = r * math.cos(ar) + c[0]
-        y = r * math.sin(ar) + c[1]
-        s = 0.004
-        p = types.PType5(x, y, size=s, mass=0.0000075)
-        s_ratio = (p.mass) / (p1.mass)
-        vx = -s_ratio * math.cos(math.radians(ad + 90)) * 1.2
-        vy = -s_ratio * math.sin(math.radians(ad + 90)) * 1.2
-        p._velocity = [vx, vy]
-        sim.add_entity(p)
-    """
-
     # Primordial particles
-
-    for _ in range(200):
-        x = (random.randint(15, 185) - 100) / 100.0
-        y = (random.randint(15, 185) - 100) / 100.0
-        size = 0.008
-        radius = 0.1 #0.155
+    """
+    for _ in range(1000):
+        x = (random.randint(10, 190) - 100) / 100.0
+        y = (random.randint(10, 190) - 100) / 100.0
+        size = 0.007
+        radius = 0.6 #0.155
         velocity = 0.0175 #0.013
         alpha = 180 #math.radians(180)
         beta = 17 #math.radians(17)
@@ -141,28 +120,13 @@ def setup():
         sim.add_entity(p)
     
     """
-    p1 = particle.PrimordialParticle(0, 0)
-    p1.radius = 0.25
-    p1.alpha = math.radians(180)
-    p1.beta = math.radians(17)
 
-    p2 = particle.PrimordialParticle(0.25, 0)
-    p2.radius = 0.25
-    p2.alpha = math.radians(180)
-    p2.beta = math.radians(17)
-
-    p3 = particle.PrimordialParticle(0.5, 0)
-    p3.radius = 0.25
-    p3.alpha = 0
-    p3.beta = 0
-
-    p4 = particle.PrimordialParticle(0.75, 0)
-    p4.radius = 0.25
-
-    sim.add_entity(p1)
-    sim.add_entity(p2)
-    sim.add_entity(p3)
-    sim.add_entity(p4)
-    """
+    # Particle Automaton
+    for _ in range(100):
+        x = (random.randint(15, 185) - 100) / 100.0
+        y = (random.randint(15, 185) - 100) / 100.0
+        radius = 0.15
+        p = particle.AutomatonParticle(x, y, radius=radius)
+        sim.add_entity(p)
 
     return sim

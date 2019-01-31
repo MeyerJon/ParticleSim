@@ -101,6 +101,9 @@ class Particle(entity.Entity):
         # Other
         self._can_move = True
 
+    def finish_tick(self):
+        return NotImplementedError
+
 
 """
     Base class for all particles that interact using some (physics-based) force system.
@@ -458,4 +461,129 @@ class PrimordialParticle(Particle):
         # Draw label showing # neighbours
         label_pos = (self.pos[0], self.pos[1] + 3*self.size + 0.015)
         n_label = Shapes.make_label(str(self._neighbourhood_size), label_pos, size=14)
+        n_label.draw()
+
+
+"""
+    Class for simulating Particle Automata
+    A Particle is defined as P = {S, d, r}
+    Where S := Statespace (ordered set of possible states)
+          d := State function (maps # neighbours onto state)
+          r := radius of neighbourhood
+"""
+class AutomatonParticle(Particle):
+
+    class ParticleState:
+
+        def __init__(self, velocity=(0,0)):
+            self.velocity = velocity
+
+    def __init__(self, x, y, radius=1):
+
+        super().__init__(x, y, size=0.0075)
+
+        self.radius = radius
+        self.S = list()
+        self.setup_statespace()
+        self.state = self.S[0]
+        self._neighbourhood_size = 0
+
+
+    # Simulation
+    def tick(self, entities):
+        
+        if self.mfd or self.paused:
+            return
+
+        # Count neighbours
+        N_total = 0
+        for e in entities:
+
+            if e == self or e.paused or e.mfd:
+                continue
+
+            # Range check
+            dist_sq = ((e.pos[0] - self.pos[0])**2) + ((e.pos[1] - self.pos[1])**2)
+            if dist_sq < (self.radius * self.radius):
+                N_total += 1
+            
+        self._neighbourhood_size = N_total
+
+        # Update state
+        self.state = self.state_func()
+
+    def finish_tick(self):
+        # Update particle according to state
+        self.pos = (self.pos[0] + self.state.velocity[0], self.pos[1] + self.state.velocity[1])
+        self.pos = border_stop(self.pos)
+
+        # Wrap position around if needed
+        if self.pos[0] < -1 or self.pos[0] > 1:
+            self.pos = (-self.pos[0], self.pos[1])
+        if self.pos[1] < -1 or self.pos[1] > 1:
+            self.pos = (self.pos[0], -self.pos[1])
+
+    
+    # Automaton methods
+    def state_func(self):
+        ix = self._neighbourhood_size % len(self.S)
+        return self.S[ix]
+
+    def add_state(self, s, ix=None):
+        if s not in self.S:
+            if ix is None:
+                ix = len(self.S) - 1
+            self.S.insert(ix, s)
+
+    def setup_statespace(self):
+
+        speed = 0.005
+        # This is where the magic happens
+        s0 = AutomatonParticle.ParticleState()
+        self.add_state(s0)
+
+        s1 = AutomatonParticle.ParticleState((-speed, 0))
+        self.add_state(s1)
+
+        s2 = AutomatonParticle.ParticleState((speed, 0))
+        self.add_state(s2)
+
+        s3 = AutomatonParticle.ParticleState((speed*0.5, -speed*0.5))
+        self.add_state(s3)
+
+        s4 = AutomatonParticle.ParticleState((-speed*0.5, speed*0.5))
+        self.add_state(s4)
+
+
+    # Graphics
+    def draw(self, batch=None):
+
+        color = (40, 10, 120)
+        indices, verts, colors = Shapes.make_circle(n_points=20, center=self.pos, radius=self.size, color=color)
+
+        if batch is None:
+            # Draw directly
+            n = len(verts[1]) // 2
+            pyglet.graphics.draw(n, pyglet.gl.GL_POLYGON, verts, colors)
+        else:
+            # Add indexed vertices to batch
+            n = len(verts[1]) // 2
+            batch.add_indexed(n, pyglet.gl.GL_TRIANGLES, None, indices, verts, colors)
+
+        # Debug view
+        if self.debug_view:
+            self.draw_debug_view()
+
+    def draw_debug_view(self):
+        # Draw circle indicating range
+        indices, verts, colors = Shapes.make_circle(center=self.pos, radius=self.radius / 2.0)
+        # Overwrite degenerate first point
+        verts[1][0:1] = verts[1][-2:-1]
+        n_points = len(verts[1]) // 2
+        pyglet.gl.glLineWidth(1)
+        pyglet.graphics.draw(n_points, pyglet.gl.GL_LINE_LOOP, verts, colors)
+
+        # Draw label showing # neighbours
+        label_pos = (self.pos[0], self.pos[1] + 3*self.size + 0.02)
+        n_label = Shapes.make_label(str(self._neighbourhood_size), label_pos, size=13)
         n_label.draw()
