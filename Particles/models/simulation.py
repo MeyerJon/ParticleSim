@@ -128,11 +128,11 @@ def setup():
 
     # Primordial particles
 
-    for _ in range(130):
+    for _ in range(200):
         x = (random.randint(15, 185) - 100) / 100.0
         y = (random.randint(15, 185) - 100) / 100.0
-        size = 0.01
-        radius = 0.16 #0.155
+        size = 0.008
+        radius = 0.1 #0.155
         velocity = 0.0175 #0.013
         alpha = 180 #math.radians(180)
         beta = 17 #math.radians(17)

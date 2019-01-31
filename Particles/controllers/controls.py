@@ -75,7 +75,7 @@ def toggle_particle_movable(particle):
 
 
 # Primordial Particle attributes
-def set_particle_radius(sim, r):
+def set_global_particle_radius(sim, r):
     """ Sets all PrimordialParticle's radii. Note: This is rather costly """
 
     for e in sim.entities:
@@ -84,6 +84,15 @@ def set_particle_radius(sim, r):
         except AttributeError:
             Logger.log_warning("Can't set radius of entity: {}".format(e))
     Logger.log_custom("control", "Set global particle radius to {}.".format(r))
+
+def set_global_particle_velocity(sim, v):
+
+    for e in sim.entities:
+        try:
+            e.velocity = [v, v]
+        except AttributeError:
+            Logger.log_warning("Can't set velocity of entity {}".format(e))
+    Logger.log_custom("control", "Set global particle velocity to {}.".format(v))
 
 
 # Simulation model methods

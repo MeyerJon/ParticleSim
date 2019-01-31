@@ -243,8 +243,16 @@ def setup_UI(c):
     r_slider_h = 0.045
     r_slider_anchor = (calc_anchor_x(c.bg.anchor[0], c.bg.w, r_slider_w), c.bg.anchor[1] - 0.4)
     r_slider = CUI_slider(r_slider_anchor, r_slider_w, r_slider_h, min_val=0.1, max_val=0.5)
-    r_slider.on_change = lambda self, c : controls.set_particle_radius(c.sim, self.value)
+    r_slider.on_change = lambda self, c : controls.set_global_particle_radius(c.sim, self.value)
     c.add_element(r_slider, c.bg)
+
+    # Velocity slider
+    v_slider_w = c.bg.w * 0.8
+    v_slider_h = 0.045
+    v_slider_anchor = (calc_anchor_x(c.bg.anchor[0], c.bg.w, v_slider_w), r_slider_anchor[1] - 0.2)
+    v_slider = CUI_slider(v_slider_anchor, v_slider_w, v_slider_h, min_val=0.005, max_val=0.015)
+    v_slider.on_change = lambda self, c : controls.set_global_particle_velocity(c.sim, self.value)
+    c.add_element(v_slider, c.bg)
 
     # Particle control panel
     pc_panel_w = c.bg.w * 0.9

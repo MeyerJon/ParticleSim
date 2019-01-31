@@ -441,9 +441,9 @@ class PrimordialParticle(Particle):
         elif self._neighbourhood_size >= 5:
             color = (10, 140, 180)
         elif self._neighbourhood_size > 3:
-            color = (20, 25, 120)
+            color = (20, 25, 180)
         else:
-            color = (10, 10, 190)
+            color = (10, 10, 120)
         return color
 
     def draw_debug_view(self):
