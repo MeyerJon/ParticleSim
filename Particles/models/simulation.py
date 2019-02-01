@@ -125,7 +125,7 @@ def setup():
     for _ in range(100):
         x = (random.randint(15, 185) - 100) / 100.0
         y = (random.randint(15, 185) - 100) / 100.0
-        radius = 0.15
+        radius = 0.1
         p = particle.AutomatonParticle(x, y, radius=radius)
         sim.add_entity(p)
 

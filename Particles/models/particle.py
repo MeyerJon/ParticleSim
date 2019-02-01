@@ -478,6 +478,9 @@ class AutomatonParticle(Particle):
         def __init__(self, velocity=(0,0)):
             self.velocity = velocity
 
+        def __repr__(self):
+            return "v: " + str(self.velocity)
+
     def __init__(self, x, y, radius=1):
 
         super().__init__(x, y, size=0.0075)
@@ -504,7 +507,7 @@ class AutomatonParticle(Particle):
 
             # Range check
             dist_sq = ((e.pos[0] - self.pos[0])**2) + ((e.pos[1] - self.pos[1])**2)
-            if dist_sq < (self.radius * self.radius):
+            if dist_sq < (self.radius * self.radius) or self.check_wrapped_neighbour(e):
                 N_total += 1
             
         self._neighbourhood_size = N_total
@@ -515,7 +518,7 @@ class AutomatonParticle(Particle):
     def finish_tick(self):
         # Update particle according to state
         self.pos = (self.pos[0] + self.state.velocity[0], self.pos[1] + self.state.velocity[1])
-        self.pos = border_stop(self.pos)
+        self.pos = self.pos
 
         # Wrap position around if needed
         if self.pos[0] < -1 or self.pos[0] > 1:
@@ -532,27 +535,67 @@ class AutomatonParticle(Particle):
     def add_state(self, s, ix=None):
         if s not in self.S:
             if ix is None:
-                ix = len(self.S) - 1
-            self.S.insert(ix, s)
+                self.S.append(s)
+            else:
+                try:
+                    self.S.insert(ix, s)
+                except:
+                    Logger.log_warning("Can't insert state at position {}.".format(ix))
 
     def setup_statespace(self):
 
         speed = 0.005
         # This is where the magic happens
-        s0 = AutomatonParticle.ParticleState()
+        s0 = AutomatonParticle.ParticleState((0, 0))
         self.add_state(s0)
 
-        s1 = AutomatonParticle.ParticleState((-speed, 0))
+        s1 = AutomatonParticle.ParticleState((0, -speed * 0.5))
         self.add_state(s1)
 
         s2 = AutomatonParticle.ParticleState((speed, 0))
         self.add_state(s2)
 
-        s3 = AutomatonParticle.ParticleState((speed*0.5, -speed*0.5))
+        s3 = AutomatonParticle.ParticleState((-speed, 0))
         self.add_state(s3)
 
-        s4 = AutomatonParticle.ParticleState((-speed*0.5, speed*0.5))
+        s4 = AutomatonParticle.ParticleState((speed*0.5, -speed*0.5))
         self.add_state(s4)
+
+        s5 = AutomatonParticle.ParticleState((-speed*0.5, speed*0.5))
+        self.add_state(s5)
+
+        s6 = AutomatonParticle.ParticleState((speed * (1.0 / 3.0), speed))
+        self.add_state(s6)
+
+    def check_wrapped_neighbour(self, e):
+        """ Checks if e is a neighbour of the particle if the world is wrapped. """
+
+        # You only need to check if within radius distance of a wall
+        sign = lambda x : (1, -1)[x < 0]
+
+        # Vertical walls
+        wrapped_x = None
+        wrapped_y = None
+        if self.pos[0] < (-1 + self.radius) or self.pos[0] > (1 - self.radius):
+            # Check if wrapped particle has e as neighbour
+            d_x = 1 - abs(self.pos[0])
+            wrapped_x = (self.pos[0] - (2 * sign(self.pos[0] * d_x)))
+        # Horizontal walls
+        elif self.pos[1] > (1 - self.radius) or self.pos[1] < (-1 + self.radius):
+            d_y = 1 - abs(self.pos[1])
+            wrapped_y = (self.pos[1] - (2 * sign(self.pos[1] * d_y)))
+
+        if wrapped_x is None and wrapped_y is None:
+            return False
+        else:
+            if wrapped_x is None: wrapped_x = self.pos[0]
+            if wrapped_y is None: wrapped_y = self.pos[1]
+            wrapped_pos = (wrapped_x, wrapped_y)
+            dist_sq = ((e.pos[0] - wrapped_pos[0])**2) + ((e.pos[1] - wrapped_pos[1])**2)
+            if dist_sq <= (self.radius * self.radius):
+                return True
+        return False
+    
 
 
     # Graphics
@@ -585,5 +628,6 @@ class AutomatonParticle(Particle):
 
         # Draw label showing # neighbours
         label_pos = (self.pos[0], self.pos[1] + 3*self.size + 0.02)
-        n_label = Shapes.make_label(str(self._neighbourhood_size), label_pos, size=13)
+        label_text = str(self._neighbourhood_size) + " / s" + str(self._neighbourhood_size % len(self.S))
+        n_label = Shapes.make_label(label_text, label_pos, size=13)
         n_label.draw()
