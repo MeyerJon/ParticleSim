@@ -481,7 +481,7 @@ class AutomatonParticle(Particle):
         def __repr__(self):
             return "v: " + str(self.velocity)
 
-    def __init__(self, x, y, radius=1):
+    def __init__(self, x, y, radius=1, state_phase=1):
 
         super().__init__(x, y, size=0.0075)
 
@@ -489,6 +489,7 @@ class AutomatonParticle(Particle):
         self.S = list()
         self.setup_statespace()
         self.state = self.S[0]
+        self.state_phase = state_phase
         self._neighbourhood_size = 0
 
 
@@ -521,15 +522,22 @@ class AutomatonParticle(Particle):
         self.pos = self.pos
 
         # Wrap position around if needed
-        if self.pos[0] < -1 or self.pos[0] > 1:
-            self.pos = (-self.pos[0], self.pos[1])
-        if self.pos[1] < -1 or self.pos[1] > 1:
-            self.pos = (self.pos[0], -self.pos[1])
+        border = 1
+        buffer = 0.01
+        if self.pos[0] < -border: 
+            self.pos = (border - buffer, self.pos[1])
+        elif self.pos[0] > border:
+            self.pos = (-border + buffer, self.pos[1])
+
+        if self.pos[1] < -border:
+            self.pos = (self.pos[0], border - buffer)
+        elif self.pos[1] > border:
+            self.pos = (self.pos[0], -border + buffer)
 
     
     # Automaton methods
     def state_func(self):
-        ix = self._neighbourhood_size % len(self.S)
+        ix = math.floor(self._neighbourhood_size / self.state_phase) % len(self.S)
         return self.S[ix]
 
     def add_state(self, s, ix=None):
@@ -555,16 +563,16 @@ class AutomatonParticle(Particle):
         s2 = AutomatonParticle.ParticleState((speed, 0))
         self.add_state(s2)
 
-        s3 = AutomatonParticle.ParticleState((-speed, 0))
+        s3 = AutomatonParticle.ParticleState((0, speed))
         self.add_state(s3)
 
-        s4 = AutomatonParticle.ParticleState((speed*0.5, -speed*0.5))
+        s4 = AutomatonParticle.ParticleState((speed*0.5, 0))
         self.add_state(s4)
 
         s5 = AutomatonParticle.ParticleState((-speed*0.5, speed*0.5))
         self.add_state(s5)
 
-        s6 = AutomatonParticle.ParticleState((speed * (1.0 / 3.0), speed))
+        s6 = AutomatonParticle.ParticleState((speed*0.5, -speed*0.5))
         self.add_state(s6)
 
     def check_wrapped_neighbour(self, e):
@@ -601,7 +609,7 @@ class AutomatonParticle(Particle):
     # Graphics
     def draw(self, batch=None):
 
-        color = (40, 10, 120)
+        color = self.colors_heatmap() #(40, 10, 120)
         indices, verts, colors = Shapes.make_circle(n_points=20, center=self.pos, radius=self.size, color=color)
 
         if batch is None:
@@ -616,6 +624,15 @@ class AutomatonParticle(Particle):
         # Debug view
         if self.debug_view:
             self.draw_debug_view()
+    
+    def colors_heatmap(self):
+        color = (
+                    45 * self._neighbourhood_size,
+                    2 * self._neighbourhood_size * self._neighbourhood_size,
+                    int(110 / (self._neighbourhood_size + 1))
+                )
+        color = (min(color[0], 255), min(color[1], 255), min(color[2], 255))
+        return color
 
     def draw_debug_view(self):
         # Draw circle indicating range
@@ -628,6 +645,6 @@ class AutomatonParticle(Particle):
 
         # Draw label showing # neighbours
         label_pos = (self.pos[0], self.pos[1] + 3*self.size + 0.02)
-        label_text = str(self._neighbourhood_size) + " / s" + str(self._neighbourhood_size % len(self.S))
+        label_text = str(self._neighbourhood_size) + " / s" + str(math.floor(self._neighbourhood_size / self.state_phase) % len(self.S))
         n_label = Shapes.make_label(label_text, label_pos, size=13)
         n_label.draw()

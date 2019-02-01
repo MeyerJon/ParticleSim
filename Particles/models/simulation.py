@@ -122,11 +122,12 @@ def setup():
     """
 
     # Particle Automaton
-    for _ in range(100):
+    for _ in range(50):
         x = (random.randint(15, 185) - 100) / 100.0
         y = (random.randint(15, 185) - 100) / 100.0
-        radius = 0.1
-        p = particle.AutomatonParticle(x, y, radius=radius)
+        radius = 0.05
+        phase = 2
+        p = particle.AutomatonParticle(x, y, radius=radius, state_phase=phase)
         sim.add_entity(p)
 
     return sim
