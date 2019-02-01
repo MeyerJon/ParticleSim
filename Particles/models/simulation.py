@@ -122,7 +122,7 @@ def setup():
     """
 
     # Particle Automaton
-    for _ in range(50):
+    for _ in range(75):
         x = (random.randint(15, 185) - 100) / 100.0
         y = (random.randint(15, 185) - 100) / 100.0
         radius = 0.05

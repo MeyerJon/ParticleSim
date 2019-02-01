@@ -523,7 +523,7 @@ class AutomatonParticle(Particle):
 
         # Wrap position around if needed
         border = 1
-        buffer = 0.01
+        buffer = 0.005
         if self.pos[0] < -border: 
             self.pos = (border - buffer, self.pos[1])
         elif self.pos[0] > border:
